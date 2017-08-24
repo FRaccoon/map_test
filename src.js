@@ -1,13 +1,23 @@
 
- document.addEventListener("DOMContentLoaded", async function() {
+ document.addEventListener('DOMContentLoaded', async function() {
   var cs = new Canvas('map')
   
-  const map_data = await loadJSON('map_data.json')
-  const map_image = await load_image(map_data['src'])
-  cs.draw_image(map_image)
+  const map_data = await loadJSON('./test/map_data.json')
+  const map_image = await load_image('./test/'+map_data['src'])
+  
   cs.stroke('rgb(255, 0, 0)')
-  var route = get_route();
-  cs.draw_lines(route);
+  var i=0;
+  setInterval(() => {
+    cs.draw_image(map_image)
+    
+    var route = get_route(map_data, i%28)
+    cs.draw_lines(route)
+    
+    if(i<28)cs.save_image()
+    
+    i++
+    
+  }, 500)
 })
 
 class Canvas {
@@ -40,15 +50,21 @@ class Canvas {
     this.ctx.drawImage(img, 0, 0, this.width, this.height)
   }
   
+  save_image() {
+    var new_img = document.createElement('img')
+    new_img.src = this.cs.toDataURL('image/png')
+    document.body.appendChild(new_img)
+  }
+  
 }
 
-function loadJSON() {
+function loadJSON(adress) {
   return new Promise((resolve) => {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('load', () => {
       resolve(JSON.parse(xhr.responseText))
     }, false)
-    xhr.open('GET', './test_json.json', true)
+    xhr.open('GET', adress, true)
     xhr.send()
   })
 }
@@ -63,8 +79,8 @@ function load_image(img_src) {
   })
 }
 
-function get_route() {
-  return [[.17, .25], [.20, .25], [.20, .50], [.46, .50], [.46, .56]];
-  
+function get_route(json, i) {
+  var route = json['route'][i]['vtx'];
+  return route
 }
 
