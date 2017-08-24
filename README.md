@@ -1,10 +1,13 @@
 
 [ページ](https://fraccoon.github.io/map_test/)
 
-jsonはこんな感じで作ってください.
+動かない場合は,
 
-```javascript
-{
-  "src" : "画像のアドレス"
-}
 ```
+$ npm install -g http-server
+$ hs
+```
+
+を実行して [ここ](http://localhost:8080/index.html) を開いてください.
+
+*~.html?from=a&to=b* (a, bはjsonのid)でルートを選べます.

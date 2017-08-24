@@ -2,8 +2,8 @@
  document.addEventListener('DOMContentLoaded', async function() {
   var cs = new Canvas('map')
   
-  const map_data = await loadJSON('./test/map_data.json')
-  const map_image = await load_image('./test/'+map_data['src'])
+  const map_data = await loadJSON('sample_data.json')
+  const map_image = await load_image(map_data['src'])
   
   cs.draw_image(map_image)
   
