@@ -1,7 +1,7 @@
 
 [ページ](https://fraccoon.github.io/map_test/)
 
-動かない場合は,
+ローカルで動かない場合は,
 
 ```
 $ npm install -g http-server
