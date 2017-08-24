@@ -5,19 +5,18 @@
   const map_data = await loadJSON('./test/map_data.json')
   const map_image = await load_image('./test/'+map_data['src'])
   
+  cs.draw_image(map_image)
+  
+  var param = get_param()
+  
+  var from = ('from' in param ? param['from'] : 0), 
+  to = ('to' in param ? param['to'] : 0)
+  
+  var route = get_route(map_data, from, to)
+  
   cs.stroke('rgb(255, 0, 0)')
-  var i=0;
-  setInterval(() => {
-    cs.draw_image(map_image)
-    
-    var route = get_route(map_data, i%28)
-    cs.draw_lines(route)
-    
-    if(i<28)cs.save_image()
-    
-    i++
-    
-  }, 500)
+  cs.draw_lines(route)
+  
 })
 
 class Canvas {
@@ -50,12 +49,6 @@ class Canvas {
     this.ctx.drawImage(img, 0, 0, this.width, this.height)
   }
   
-  save_image() {
-    var new_img = document.createElement('img')
-    new_img.src = this.cs.toDataURL('image/png')
-    document.body.appendChild(new_img)
-  }
-  
 }
 
 function loadJSON(adress) {
@@ -79,8 +72,23 @@ function load_image(img_src) {
   })
 }
 
-function get_route(json, i) {
-  var route = json['route'][i]['vtx'];
-  return route
+function get_param() {
+  var arg = new Object
+  var pair = location.search.substring(1).split('&')
+  for(var i=0;pair[i];i++) {
+    var kv = pair[i].split('=')
+    arg[kv[0]] = kv[1]
+  }
+  return arg
+}
+
+function get_route(json, from, to) {
+  var routes = json['route']
+  for(var i=0;i<routes.length;i++) {
+    if( (routes[i]['from']==from && routes[i]['to']==to) || 
+      (routes[i]['to']==from && routes[i]['from']==to) )
+      return routes[i]['vtx']
+  }
+  return [json['points']['pos']]
 }
 
