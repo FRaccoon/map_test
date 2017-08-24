@@ -1,5 +1,5 @@
 
-[ページ](https://fraccoon.github.io/map_test/)
+[ページ](https://fraccoon.github.io/map_test/index.html?from=0&to=4)
 
 ローカルで動かない場合は,
 
@@ -10,4 +10,3 @@ $ hs
 
 を実行して [ここ](http://localhost:8080/index.html) を開いてください.
 
-*~.html?from=a&to=b* (a, bはjsonのid)でルートを選べます.
