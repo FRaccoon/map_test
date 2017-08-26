@@ -1,23 +1,38 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=10.0, user-scalable=yes">
   
-  <title>ぺーじのてすと</title>
+  <title>Vue test</title>
   
-  <script src="./src.js"></script>
+  <script src="./vue-2-4-2.js"></script>
   
 </head>
 <body>
   
-  <header></header>
-  
-  <div id="contents">
-    <canvas id="map" style="border: solid 1px #000000;"></canvas>
+  <div id="app">
+    <div>
+      from: <input @keyup.enter="submit" v-model="from"><br>
+      to: <input @keyup.enter="submit" v-model="to">
+    </div>
+    
+    <iframe id="map" v-bind:src="url"></iframe>
   </div>
   
-  <footer></footer>
+  <script>
+    var app = new Vue({
+      el: '#app',
+      data: {
+        from: '0',
+        to: '0',
+        url: './map.html',
+        submit : function () {
+          this.url = './map.html?from='+this.from+'&to='+this.to
+        }
+      }
+    })
+  </script>
   
 </body>
 </html>

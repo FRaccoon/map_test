@@ -1,5 +1,8 @@
 
  document.addEventListener('DOMContentLoaded', async function() {
+  var elm = window.parent.document.getElementById('map')
+  elm.style.height = document.body.scrollHeight + 'px'
+  
   var cs = new Canvas('map')
   
   const map_data = await loadJSON('sample_data.json')
