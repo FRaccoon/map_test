@@ -1,0 +1,7 @@
+{
+  "floors" : [
+    {"id" : 0, "src" : "./data/fd1.json" },
+    {"id" : 1, "src" : "./data/fd2.json" },
+    {"id" : 2, "src" : "./data/fd3.json" }
+  ]
+}

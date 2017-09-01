@@ -1,0 +1,20 @@
+<goml>
+  
+  <geometry name="point" type="sphere" divVertical="10" divHorizontal="10" />
+  <geometry name="plane" type="plane" />
+  
+  <scene>
+    
+    <camera position="0, 0.5, 10">
+      <camera.components>
+        <MouseCameraControl/>
+      </camera.components>
+    </camera>
+    
+    <mesh class="coordinate" position="0, 0, 0" geometry="point" scale="0.02" color="black" />
+    <mesh class="coordinate" position="5, 0, 0" geometry="cube" scale="5, 0.01, 0.01" color="red" />
+    <mesh class="coordinate" position="0, 5, 0" geometry="cube" scale="0.01, 5, 0.01" color="green" />
+    <mesh class="coordinate" position="0, 0, 5" geometry="cube" scale="0.01, 0.01, 5" color="blue" />
+    
+  </scene>
+</goml>

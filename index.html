@@ -1,38 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=10.0, user-scalable=yes">
   
-  <title>Vue test</title>
+  <title>MAP TEST</title>
   
-  <script src="./vue-2-4-2.js"></script>
+  <script src="./grimoire-preset-basic.js"></script>
+  
+  <script type="text/javascript" src="./src.js"></script>
   
 </head>
 <body>
   
-  <div id="app">
-    <div>
-      from: <input @keyup.enter="submit" v-model="from"><br>
-      to: <input @keyup.enter="submit" v-model="to">
-    </div>
-    
-    <iframe id="map" v-bind:src="url"></iframe>
-  </div>
+  <header></header>
   
-  <script>
-    var app = new Vue({
-      el: '#app',
-      data: {
-        from: '0',
-        to: '0',
-        url: './map.html',
-        submit : function () {
-          this.url = './map.html?from='+this.from+'&to='+this.to
-        }
-      }
-    })
-  </script>
+  <!--div id="contents"-->
+    <script id="map" type="text/goml" src="./map.goml"></script>
+  <!--/div-->
+  
+  <footer></footer>
   
 </body>
 </html>
