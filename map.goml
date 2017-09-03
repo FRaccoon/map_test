@@ -5,16 +5,20 @@
   
   <scene>
     
-    <camera position="0, 0.5, 10">
+    <camera>
       <camera.components>
-        <MouseCameraControl/>
+        <MouseCameraControl />
       </camera.components>
     </camera>
     
-    <mesh class="coordinate" position="0, 0, 0" geometry="point" scale="0.02" color="black" />
-    <mesh class="coordinate" position="5, 0, 0" geometry="cube" scale="5, 0.01, 0.01" color="red" />
-    <mesh class="coordinate" position="0, 5, 0" geometry="cube" scale="0.01, 5, 0.01" color="green" />
-    <mesh class="coordinate" position="0, 0, 5" geometry="cube" scale="0.01, 0.01, 5" color="blue" />
+    <object id="coordinate">
+      <mesh position="0, 0, 0" geometry="point" scale=".02" color="black" />
+      <mesh position="100, 0, 0" geometry="cube" scale="100, .01, .01" color="red" />
+      <mesh position="0, 100, 0" geometry="cube" scale=".01, 100, .01" color="green" />
+      <mesh position="0, 0, 100" geometry="cube" scale=".01, .01, 100" color="blue" />
+    </object>
+    
+    <object id="world" />
     
   </scene>
 </goml>

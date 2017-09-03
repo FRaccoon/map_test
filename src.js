@@ -1,13 +1,26 @@
 
-//gr.debug = false
+gr.debug = false
 const Vec2 = gr.lib.math.Vector2, Vec3 = gr.lib.math.Vector3, Quat = gr.lib.math.Quaternion
 
 document.addEventListener('DOMContentLoaded', async function() {
   
+  const goml_id = '#map'
+  
   gr(() => {
-    gr('#map')('.coordinate').setAttribute('transparent', false)
-    gr('#map')('.coordinate').setAttribute('enabled', gr.debug)
+    gr(goml_id)('#coordinate').setAttribute('enabled', gr.debug)
+    gr(goml_id)('#coordinate').setAttribute('transparent', false)
   })
+  
+  const loadJSON = (adress) => {
+    return new Promise((resolve) => {
+      const xhr = new XMLHttpRequest();
+      xhr.addEventListener('load', () => {
+        resolve(JSON.parse(xhr.responseText))
+      }, false)
+      xhr.open('GET', adress, true)
+      xhr.send()
+    })
+  }
   
   const md = await loadJSON('./data/md.json')
   let fd = new Object
@@ -16,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     fd[f['id']] = d
   }
   
-  const map = new Map('#map', md, fd)
+  const map = new Map(gr(goml_id)('#world'), md, fd)
   
   var par = (() => {
     let arg = new Object
@@ -28,72 +41,82 @@ document.addEventListener('DOMContentLoaded', async function() {
     return arg
   })()
   
-  const floor = ('floor' in par ? par['floor'] : 0), from = ('from' in par ? par['from'] : 0), to = ('to' in par ? par['to'] : 0)
+  const ff = ('ff' in par ? par['ff'] : 0), fi = ('fi' in par ? par['fi'] : 0)
+  const tf = ('tf' in par ? par['tf'] : 0), ti = ('ti' in par ? par['ti'] : 0)
   
   map.init()
-  map.draw_route(floor, from, to)
+  
+  map.draw_route(ff, fi, tf, ti)
   
 })
 
-function loadJSON(adress) {
-  return new Promise((resolve) => {
-    const xhr = new XMLHttpRequest();
-    xhr.addEventListener('load', () => {
-      resolve(JSON.parse(xhr.responseText))
-    }, false)
-    xhr.open('GET', adress, true)
-    xhr.send()
-  })
-}
-
 class Map {
-  constructor(gi, md, fd) {
-    this.gi = gi
+  constructor(world, md, fd) {
+    this.world = world
     this.md = md
     this.fd = fd
-    
-    this.rt = Quat.angleAxis(-Math.PI/2, new Vec3(1, 0, 0)).normalize()
     
   }
   
   init() {
     gr(() => {
-      for(let i in this.fd)
-        gr(this.gi)('scene').addChildByName('mesh', { geometry : 'plane', position: this.fd[i]['pos'], rotation : this.rt, texture : this.fd[i]['src'], class : 'map', transparent : true, } )
+      for(let i in this.fd) {
+        const f = this.fd[i]
+        const pos = f['pos'], sz = f['size']
+        this.world.addChildByName('mesh', { geometry : 'plane', position : [ pos['x'], pos['y'], pos['z'] ], texture : f['src'], scale : [sz['x']/2, sz['y']/2, 1], class : 'map', transparent : true, } )
+        for(let j in f['booth']) {
+          this.world.addChildByName('mesh', {geometry : 'point', position : this.get_pos(i, f['booth'][j]['pos']), scale : .01, class : 'map', color : 'green', transparent : false, } )
+        }
+      }
+      
+      this.world.setAttribute('rotation', '-90, 0, 0')
     })
   }
   
   get_vtx(fl, f, t) {
     const rs = this.fd[fl]['route']
     for(let i in rs) {
-      if( (rs[i]['from']==f && rs[i]['to']==t) || 
-        (rs[i]['to']==f && rs[i]['from']==t) )
-        return rs[i]['vtx']
+      if(rs[i]['from']==f && rs[i]['to']==t)return rs[i]['vtx']
+      else if(rs[i]['to']==f && rs[i]['from']==t)return rs[i]['vtx'].concat().reverse()
     }
-    return [[0, 0]]
+    return [this.fd[fl]['booth'][f]['pos']]
   }
   
-  draw_line(p, q, z) {
-    const r = Vec2.subtract(q, p)
-    const a = Vec2.angle(new Vec2(1, 0), r)
-    const s = Quat.multiply( this.rt, Quat.angleAxis( a, new Vec3(0, 0, 1))).normalize()
-    
+  get_pos(fl, p) {
+    const pos = this.fd[fl]['pos'], sz = this.fd[fl]['size']
+    return new Vec3( pos['x']+p['x']-sz['x']/2, pos['y']+p['y']-sz['y']/2, pos['z'] )
+  }
+  
+  get_vtx_pos(fl, vtx) {
+    let r = []
+    for(let i=0;i<vtx.length;i++)r.push(this.get_pos(fl, vtx[i]))
+    return r
+  }
+  
+  get_route(ff, fi, tf, ti) {
+    if(ff==tf)return this.get_vtx_pos(ff, this.get_vtx(ff, fi, ti))
+    else return this.get_vtx_pos( ff, this.get_vtx(ff, fi, 0) ).concat( this.get_vtx_pos( tf, this.get_vtx(tf, 0, ti) ) )
+  }
+  
+  draw_line(p, q) {
+    const r = Vec3.subtract(q, p)
+    const s = Quat.angleAxis(Vec3.angle(Vec3.XUnit, r), Vec3.cross(Vec3.XUnit, r)).normalize() // Quat.fromToRotation(Vec3.XUnit, r).normalize()
     gr(() => {
-      gr(this.gi)('scene').addChildByName('mesh', { geometry : 'cube', position: [p.X+q.X-1, z, p.Y+q.Y-1], scale : [r.magnitude+0.02, 0.02, 0.02], rotation : s, color : 'red', class : 'route', transparent : false, } )
+      this.world.addChildByName('mesh', { geometry : 'cube', position : Vec3.multiply(.5, Vec3.add(p, q)), scale : [r.magnitude/2+.01, .01, .01], rotation : s, color : 'red', class : 'route', transparent : false, })
     })
   }
   
-  draw_lines(vtx, z) {
-    let p = new Vec2(vtx[0][0], vtx[0][1])
-    for(let i=1;i<vtx.length;i++) {
-      const q = new Vec2(vtx[i][0], vtx[i][1])
-      this.draw_line(p, q, z)
+  draw_lines(pos) {
+    let p = pos[0]
+    for(let i=1;i<pos.length;i++) {
+      const q = pos[i]
+      this.draw_line(p, q)
       p = q
     }
   }
   
-  draw_route(fl, f, t) {
-    this.draw_lines(this.get_vtx(fl, f, t), this.fd[fl]['pos'][1])
+  draw_route(ff, fi, tf, ti) {
+    this.draw_lines(this.get_route(ff, fi, tf, ti))
   }
   
 }

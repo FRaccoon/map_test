@@ -2,7 +2,7 @@
 Main main;
 
 void setup() {
-  size(600, 400);
+  size(100, 100);
   
   main = new Main();
   

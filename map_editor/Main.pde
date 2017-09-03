@@ -3,45 +3,50 @@ class Main {
   
   String src;
   PImage map;
-  
-  float w, h;
+  float scl;
   
   int[] dx = {1, 0,-1, 0};
   int[] dy = {0, 1, 0,-1};
   
   int st; // state
-  boolean d; // debug
+  boolean d = true; // debug
   
   int pd; // point_direction
   int ld; // line_direction
   
   boolean pm, ms; // prev_mouse, mouse_state
   
-  ArrayList<P> ps;
+  ArrayList<P2> ps;
   int pn;
   
   ArrayList<L> ls;
   int ln;
   P fp;
   
+  ArrayList<P> bs; // booth
+  int bn;
+  
+  String inp;
+  
   Main() {
     
-    src = "./map_image.png";
+    this.scl = 100;
+    
+    src = "./data/img.png";
     this.load_image();
     
-    this.w = width;
-    this.h = height;
-    
-    this.ps = new ArrayList<P>();
+    this.ps = new ArrayList<P2>();
     this.pn = 0;
     
     this.ls = new ArrayList<L>();
     this.ln = 0;
     
-    fp = new P(0, 0, 0);
+    fp = new P(0, 0);
+    
+    this.bs = new ArrayList<P>();
+    this.bn = 0;
     
     this.st = 0;
-    this.d = true;
     
     this.pd = 0;
     this.pd = 0;
@@ -49,36 +54,70 @@ class Main {
     this.pm = false;
     this.ms = false;
     
+    inp="";
+    
   }
   
   void load_image() {
-    map = loadImage(src);
-    if(this.d)println("load "+src+".");
+    this.map = loadImage("../"+src);
+    
+    surface.setResizable(true);
+    surface.setSize(this.map.width, this.map.height);
+    surface.setResizable(false);
+    
+    this.db("load "+src+" "+this.w()+"x"+this.h()+".");
   }
   
-  void add_p(P p) {
+  float w() {
+    return this.map.width/this.scl;
+  }
+  
+  float h() {
+    return this.map.height/this.scl;
+  }
+  
+  void add_p(P2 p) {
     this.ps.add(p);
     this.pn++;
-    if(this.d)println("add point "+p.str2(true)+".");
+    this.db("add point "+this.pn+" at "+p.str2()+".");
   }
   
-  P get_p(int i) {
+  P2 get_p(int i) {
     if(0<=i && i<this.pn)return ps.get(i);
     else return null;
   }
   
-  void rm_p() {
-    if(this.pn>0) {
-      this.ps.remove(this.pn-1);
+  void rm_p(int i) {
+    if(0<i && i<=this.pn) {
+      this.ps.remove(i-1);
       this.pn--;
-      if(this.d)println("remov point.");
-    }else if(this.d)println("no point.");
+      this.db("remove point "+i+".");
+    }else this.db("no point.");
+  }
+  
+  void add_b(P b) {
+    this.bs.add(b);
+    this.bn++;
+    this.db("add booth "+this.bn+" at "+b.str2()+".");
+  }
+  
+  P get_b(int i) {
+    if(0<=i && i<this.bn)return bs.get(i);
+    else return null;
+  }
+  
+  void rm_b(int i) {
+    if(0<i && i<=this.bn) {
+      this.bs.remove(i-1);
+      this.bn--;
+      this.db("remove booth "+i+".");
+    }else this.db("no booth.");
   }
   
   void add_l(L l) {
     this.ls.add(l);
     this.ln++;
-    if(this.d)println("add line"+l.str2()+".");
+    this.db("add line"+this.ln+" at "+l.str2()+".");
   }
   
   L get_l(int i) {
@@ -86,12 +125,12 @@ class Main {
     else return null;
   }
   
-  void rm_l() {
-    if(this.ln>0) {
-      this.ls.remove(this.ln-1);
+  void rm_l(int i) {
+    if(0<i && i<=this.ln) {
+      this.ls.remove(i-1);
       this.ln--;
-      if(this.d)println("remov line.");
-    }else if(this.d)println("no line.");
+      this.db("remove line "+i+".");
+    }else this.db("no line.");
   }
   
   void update() {
@@ -100,21 +139,28 @@ class Main {
   }
   
   void draw() {
-    image(this.map, 0, 0, this.w, this.h);
+    image(this.map, 0, 0, this.map.width, this.map.height);
+    
+    textSize(12);
+    textAlign(LEFT, BOTTOM);
     
     stroke(255, 0, 0);
     fill(255, 0, 0);
-    for(int i=0;i<this.pn;i++)this.get_p(i).draw(this, true);
+    for(int i=0;i<this.pn;i++)this.get_p(i).draw(this, i+1);
     
     stroke(0, 0, 255);
     fill(0, 0, 255);
-    for(int i=0;i<this.ln;i++)this.get_l(i).draw(this);
-    if(this.st==1 && this.ms)line(fp.x*this.w, fp.y*this.h, (this.ld==1?fp.x*this.w:mouseX), (this.ld==2?fp.y*this.h:mouseY));
+    for(int i=0;i<this.ln;i++)this.get_l(i).draw(this, i+1);
+    if(this.st==1 && this.ms)(new L(fp, new P((this.ld==1?fp.x:mouseX), (this.ld==2?fp.y:mouseY)))).draw(this, this.ln+2);
+    
+    stroke(0, 255, 0);
+    fill(0, 255, 0);
+    for(int i=0;i<this.bn;i++)this.get_b(i).draw(this, i+1);
     
   }
   
   void mousePushed() {
-    if(this.st==1)fp.set(mouseX/this.w, mouseY/this.h);
+    if(this.st==1)fp.set(mouseX/this.scl, mouseY/this.scl);
   }
   
   void mousePressed() {
@@ -122,13 +168,16 @@ class Main {
   }
   
   void mouseReleased() {
-    float mx = mouseX/this.w, my = mouseY/this.h;
+    float mx = mouseX/this.scl, my = mouseY/this.scl;
     switch(this.st) {
       case 0:
-        this.add_p(new P(mx, my, this.pd));
+        this.add_p(new P2(mx, my, this.pd));
       break;
       case 1:
-        this.add_l( new L( fp.copy(), new P((this.ld==1?fp.x:mx), (this.ld==2?fp.y:my), 0) ) );
+        this.add_l( new L( fp.copy(), new P((this.ld==1?fp.x:mx), (this.ld==2?fp.y:my)) ) );
+      case 2:
+        this.add_b(new P(mx, my));
+      break;
     }
     this.ms = false;
   }
@@ -136,171 +185,195 @@ class Main {
   void keyPressed() {}
   
   void keyReleased() {
-    switch(key) {
-      case 'd':
-        this.c_dir();
+    boolean i = false;
+    if(this.is_w(key)) {
+      this.inp += key;
+      i = true;
+    }
+    else switch(key) {
+      case ENTER:
+        this.cmd();
+        this.inp = "";
       break;
-      case 'r':
-        this.rm_data();
+      default:
+      switch(keyCode) {
+        case BACKSPACE:
+          if(this.inp.length()>0) {
+            this.inp = this.inp.substring(0, this.inp.length()-1);
+            i = true;
+          }
+        break;
+      }
       break;
-      case 't':
-        this.toggle();
-      break;
-      case 's':
-        this.save_txt();
-      break;
-      case 'S':
-        this.save_json();
-      break;
-      case 'l':
-        this.load();
-      break;
+    }
+    if(i)println("> "+this.inp);
+  }
+  
+  boolean is_w(char c) {
+    if(0<=c-'a' && c-'z'<=0)return true;
+    else if(0<=c-'A' && c-'Z'<=0)return true;
+    else if(0<=c-'0' && c-'9'<=0)return true;
+    else if(c==' ')return true;
+    else return false;
+    
+  }
+  
+  void cmd() {
+    String[] t = splitTokens(this.inp, " ");
+    if(t.length<1) {
+      this.db("no command");
+    }else {
+      int i = t.length<2?0:int(t[1]);
+      switch(t[0].charAt(0)) {
+      case 'd':this.c_dir(i);break;
+      case 'r':this.rm_data(i);break;
+      case 't':this.toggle(i);break;
+      case 's':this.save(i);break;
+      case 'l':this.load_data();break;
+      default:this.db("it is not command.");break;
+      }
     }
   }
   
-  void rm_data() {
-    if(this.st==0)this.rm_p();
-    else if(this.st==1)this.rm_l();
-  }
-  
-  void c_dir() {
+  void rm_data(int t) {
     switch(this.st) {
       case 0:
-        this.pd = (this.pd+1)%4;
-        if(this.d)println("change point direction to ("+this.dx[this.pd]+", "+this.dy[this.pd]+").");
+        this.rm_p(t>0?t:this.pn);
       break;
       case 1:
-        this.ld = (this.ld+1)%3;
-        if(this.d)println("change line direction to "+(this.ld==0?"free":(this.ld==1?"tate":"yoko"))+".");
+        this.rm_l(t>0?t:this.ln-1);
+      break;
+      case 2:
+        this.rm_b(t>0?t:this.bn-1);
       break;
     }
   }
   
-  void toggle() {
-    this.st = (this.st+1)%2;
-    if(this.d)println("toggle to "+(this.st==0?"point":"line")+" mode.");
+  void c_dir(int t) {
+    switch(this.st) {
+      case 0:
+        this.pd = (t>0?t:(this.pd+1))%4;
+        this.db("change point direction to ("+this.dx[this.pd]+", "+this.dy[this.pd]+").");
+      break;
+      case 1:
+        this.ld = (t>0?t:(this.ld+1))%3;
+        this.db("change line direction to "+(this.ld==0?"free":(this.ld==1?"tate":"yoko"))+".");
+      break;
+    }
   }
   
-  void save_txt() {
-    String[] str = new String[this.pn+this.ln+2];
+  void toggle(int t) {
+    this.st = (t>0?t:(this.st+1))%3;
+    String cns = "";
+    switch(this.st) {
+      case 0:cns = "point";break;
+      case 1:cns = "line";break;
+      case 2:cns = "booth";break;
+    }
+    this.db("toggle to "+cns+" mode.");
+  }
+  
+  void save(int t) {
+    switch(t) {
+      case 0:this.save_data();break;
+      case 1:this.save_text();break;
+      case 2:this.save_json();break;
+    }
+  }
+  
+  void save_data() {
+    String[] str = new String[this.bn+this.pn+this.ln+3];
     int t = 0;
     
-    str[0] = this.ln+"";
-    t++;
-    for(int i=0;i<this.ln;i++) {
-      str[t] = this.get_l(i).str();
-      t++;
-    }
-    
-    str[t] = this.pn+"";
-    t++;
+    str[t++] = this.pn+"";
     for(int i=0;i<this.pn;i++) {
-      str[t] = this.get_p(i).str(true);
-      t++;
+      str[t++] = this.get_p(i).str();
     }
     
-    saveStrings("./map_data.txt", str);
-    if(this.d)println("save text_data.");
+    str[t++] = this.ln+"";
+    for(int i=0;i<this.ln;i++) {
+      str[t++] = this.get_l(i).str();
+    }
+    
+    str[t++] = this.bn+"";
+    for(int i=0;i<this.bn;i++) {
+      str[t++] = this.get_b(i).str();
+    }
+    
+    saveStrings("./sd.txt", str);
+    this.db("save data.");
+  }
+  
+  void save_text() {
+    String[] str = new String[this.pn+this.ln+3];
+    int t = 0;
+    
+    str[t++] = this.w()+" "+this.h();
+    str[t++] = this.pn+"";
+    for(int i=0;i<this.pn;i++) {
+      str[t++] = this.get_p(i).str();
+    }
+    
+    str[t++] = this.ln+"";
+    for(int i=0;i<this.ln;i++) {
+      str[t++] = this.get_l(i).str();
+    }
+    
+    saveStrings("./st.txt", str);
+    this.db("save text data.");
   }
   
   void save_json() {
-    String[] str = new String[this.pn+5];
+    String[] str = new String[this.bn+6];
     int t=0;
     
-    str[0] = "{";
-    str[1] = "  \"src\" : \""+src+"\",";
-    str[2] = "  \"points\" : [";
+    str[t++] = "{";
+    str[t++] = "  \"src\" : \""+src+"\",";
+    str[t++] = "  \"size\" : { \"x\" : "+this.w()+", \"y\" : "+this.h()+" },";
+    str[t++] = "  \"booth\" : [";
     
-    t = 3;
-    
-    for(int i=0;i<ps.size();i++) {
-      str[t] = "    { \"id\" : "+i+", \"pos\" : "+this.get_p(i).str2(false)+", \"about\" : \"aaa\"}"+(i<this.pn-1?",":"");
-      t++;
+    for(int i=0;i<this.bn;i++) {
+      str[t++] = "    { \"id\" : "+i+", \"pos\" : "+this.get_b(i).str3(this)+", \"about\" : \"aaa\" }"+(i<this.bn-1?",":"");
     }
     
-    str[t] = "  ],";
-    t++;
+    str[t++] = "  ],";
     str[t] = "}";
     
-    saveStrings("../map_data.json", str);
-    if(this.d)println("save json_data.");
+    saveStrings("./sj1.json", str);
+    this.db("save json data.");
   }
   
-  void load() {
-    String str[] = loadStrings("./map_data.txt");
-    
-    int l = int(str[0]);
-    for(int i=0;i<l;i++) {
-      String[] dt = split(str[i+1], " ");
-      this.add_l( new L( new P(float(dt[0]), float(dt[1]), 0), new P(float(dt[2]), float(dt[3]), 0) ) );
+  void load_data() {
+    String str[] = loadStrings("./sd.txt");
+    if(str==null) {
+      this.db("no load file.");
+      return ;
     }
+    int t=0;
     
-    int p = int(str[l+1]);
+    int p = int(str[t++]);
     for(int i=0;i<p;i++) {
-      String[] dt = split(str[i+l+2], " ");
-      this.add_p( new P(float(dt[0]), float(dt[1]), int(dt[2])) );
+      String[] dt = split(str[t++], " ");
+      this.add_p( new P2(float(dt[0]), float(dt[1]), int(dt[2])) );
     }
     
-    if(this.d)println("data load.");
-  }
-}
-
-class L { // Line
-  P f, t;
-  
-  L(P f, P t) {
-    this.f = f;
-    this.t = t;
-  }
-  
-  void draw(Main m) {
-    this.f.draw(m, false);
-    this.t.draw(m, false);
-    line(this.f.x*m.w, this.f.y*m.h, this.t.x*m.w, this.t.y*m.h);
+    int l = int(str[t++]);
+    for(int i=0;i<l;i++) {
+      String[] dt = split(str[t++], " ");
+      this.add_l( new L( new P(float(dt[0]), float(dt[1])), new P(float(dt[2]), float(dt[3])) ) );
+    }
+    
+    int b = int(str[t++]);
+    for(int i=0;i<b;i++) {
+      String[] dt = split(str[t++], " ");
+      this.add_b( new P(float(dt[0]), float(dt[1])) );
+    }
+    
+    this.db("load data.");
   }
   
-  String str() {
-    return this.f.str(false)+" "+this.t.str(false);
-  }
-  
-  String str2() {
-    return "("+this.f.str2(true)+", "+this.t.str2(true)+")";
-  }
-  
-}
-
-class P { // Point
-  float x, y;
-  int d;
-  
-  P(float x, float y, int d) {
-    this.x = x;
-    this.y = y;
-    this.d = d;
-  }
-  
-  void set(float x, float y) {
-    this.x = x;
-    this.y = y;
-  }
-  
-  P copy() {
-    return new P(this.x, this.y, 0);
-  }
-  
-  void draw(Main m, boolean b) {
-    int l = 6;
-    ellipse(this.x*m.w, this.y*m.h, l, l);
-    if(b)line(this.x*m.w, this.y*m.h, this.x*m.w+2*l*m.dx[d], this.y*m.h+2*l*m.dy[d]);
-  }
-  
-  String str(boolean b) {
-    return this.x+" "+this.y+(b?" "+this.d:"");
-  }
-  
-  String str2(boolean b) {
-    if(b)return "("+this.x+", "+this.y+")";
-    else return "["+this.x+", "+this.y+"]";
+  void db(String e) {
+    if(this.d)println(e);
   }
   
 }
