@@ -10,3 +10,7 @@ $ hs
 
 を実行して [ここ](http://localhost:8080/index.html) を開いてください.
 
+おまけ
+
+map_editor は [Processing](https://processing.org/) で作られたマップの情報を編集する為の簡易的なツールです,  
+使用するには Processing をダウンロードして map_editor.pde を開いて Ctrl-R (Macの場合は Cmd-R) で実行してください.

@@ -49,7 +49,7 @@ class Main {
     this.st = 0;
     
     this.pd = 0;
-    this.pd = 0;
+    this.ld = 0;
     
     this.pm = false;
     this.ms = false;
@@ -333,7 +333,7 @@ class Main {
     str[t++] = "  \"booth\" : [";
     
     for(int i=0;i<this.bn;i++) {
-      str[t++] = "    { \"id\" : "+i+", \"pos\" : "+this.get_b(i).str3(this)+", \"about\" : \"aaa\" }"+(i<this.bn-1?",":"");
+      str[t++] = "    { \"id\" : "+i+", \"pos\" : "+this.get_b(i).str3(this)+", \"about\" : \"aa\" }"+(i<this.bn-1?",":"");
     }
     
     str[t++] = "  ],";
