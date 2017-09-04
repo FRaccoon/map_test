@@ -63,9 +63,17 @@ class Map {
       for(let i in this.fd) {
         const f = this.fd[i]
         const pos = f.pos, sz = f.size
-        this.world.addChildByName('mesh', { geometry : 'plane', position : [ pos.x, pos.y, pos.z ], texture : f.src, scale : [sz.x/2, sz.y/2, 1], class : 'map', transparent : true, } )
+        const m = this.world.addChildByName('mesh', { geometry : 'plane', position : [ pos.x, pos.y, pos.z ], texture : f.src, scale : [sz.x/2, sz.y/2, 1], class : 'map', transparent : true, color : 'white', } )
+        m.on('mouseenter', () => {
+          m.setAttribute('color', 'yellow')
+          document.getElementById('about').innerText = f.about
+        })
+        m.on('mouseleave', () => {
+          m.setAttribute('color', 'white')
+          document.getElementById('about').innerText = ''
+        })
         for(let j in f.booth) {
-          this.world.addChildByName('mesh', {geometry : 'point', position : this.get_pos(i, f.booth[j].pos), scale : .01, class : 'map', color : 'green', transparent : false, } )
+          const b = this.world.addChildByName('mesh', {geometry : 'point', position : this.get_pos(i, f.booth[j].pos), scale : .01, class : 'map', transparent : false, color : 'green', } )
         }
       }
       
