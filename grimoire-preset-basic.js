@@ -3730,7 +3730,7 @@ var _grimoirejs2 = _interopRequireDefault(_grimoirejs);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var __VERSION__ = "1.11.8";
+var __VERSION__ = "1.11.9";
 var __NAME__ = "grimoirejs-preset-basic";
 
 var __EXPOSE__ = {};
@@ -23073,11 +23073,25 @@ var Quaternion = function () {
             delta = delta.normalize();
             return 2 * Math.acos(delta.W);
         }
+        /**
+         * Returns a quaternion that transform provided 'from' vector into 'to' vector.
+         * If 'from' cross 'to' is closer to 0 vector, axisHint is used as axis.
+         * This may only used for the situation when from vector and to vector is in relations these are negating the other.
+         * @param from
+         * @param to
+         * @param axisHint if no vector specified to this argument, [0,1,0] will be used for default
+         */
+
     }, {
         key: "fromToRotation",
         value: function fromToRotation(from, to) {
+            var axisHint = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
             var crossed = _Vector2.default.cross(from.normalized, to.normalized);
-            var angle = _Vector2.default.dot(from.normalized, to.normalized);
+            if (crossed.magnitude < 0.5) {
+                crossed = axisHint ? axisHint : new _Vector2.default(0, 1, 0);
+            }
+            var angle = Math.acos(_Vector2.default.dot(from.normalized, to.normalized));
             return Quaternion.angleAxis(angle, crossed);
         }
     }, {
@@ -26675,7 +26689,7 @@ var _grimoirejs2 = _interopRequireDefault(_grimoirejs);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var __VERSION__ = "1.14.7";
+var __VERSION__ = "1.14.8";
 var __NAME__ = "grimoirejs-math";
 
 var __EXPOSE__ = {
