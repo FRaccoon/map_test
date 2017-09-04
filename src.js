@@ -24,8 +24,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   
   const md = await loadJSON('./data/md.json')
   let fd = new Object
-  for(let f of md['floors']) {
-    const d = await loadJSON(f['src'])
+  for(let f of md.floors) {
+    const d = await loadJSON(f.src)
     fd[f['id']] = d
   }
   
@@ -41,8 +41,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     return arg
   })()
   
-  const ff = ('ff' in par ? par['ff'] : 0), fi = ('fi' in par ? par['fi'] : 0)
-  const tf = ('tf' in par ? par['tf'] : 0), ti = ('ti' in par ? par['ti'] : 0)
+  const ff = ('ff' in par ? par.ff : 0), fi = ('fi' in par ? par.fi : 0)
+  const tf = ('tf' in par ? par.tf : 0), ti = ('ti' in par ? par.ti : 0)
   
   map.init()
   
@@ -51,21 +51,21 @@ document.addEventListener('DOMContentLoaded', async function() {
 })
 
 class Map {
+  
   constructor(world, md, fd) {
     this.world = world
     this.md = md
-    this.fd = fd
-    
+    this.fd = fd  
   }
   
   init() {
     gr(() => {
       for(let i in this.fd) {
         const f = this.fd[i]
-        const pos = f['pos'], sz = f['size']
-        this.world.addChildByName('mesh', { geometry : 'plane', position : [ pos['x'], pos['y'], pos['z'] ], texture : f['src'], scale : [sz['x']/2, sz['y']/2, 1], class : 'map', transparent : true, } )
-        for(let j in f['booth']) {
-          this.world.addChildByName('mesh', {geometry : 'point', position : this.get_pos(i, f['booth'][j]['pos']), scale : .01, class : 'map', color : 'green', transparent : false, } )
+        const pos = f.pos, sz = f.size
+        this.world.addChildByName('mesh', { geometry : 'plane', position : [ pos.x, pos.y, pos.z ], texture : f.src, scale : [sz.x/2, sz.y/2, 1], class : 'map', transparent : true, } )
+        for(let j in f.booth) {
+          this.world.addChildByName('mesh', {geometry : 'point', position : this.get_pos(i, f.booth[j].pos), scale : .01, class : 'map', color : 'green', transparent : false, } )
         }
       }
       
@@ -74,17 +74,18 @@ class Map {
   }
   
   get_vtx(fl, f, t) {
-    const rs = this.fd[fl]['route']
+    const rs = this.fd[fl].route
     for(let i in rs) {
-      if(rs[i]['from']==f && rs[i]['to']==t)return rs[i]['vtx']
-      else if(rs[i]['to']==f && rs[i]['from']==t)return rs[i]['vtx'].concat().reverse()
+      const r = rs[i]
+      if(r.from==f && r.to==t)return r.vtx
+      else if(r.to==f && r.from==t)return r.vtx.concat().reverse()
     }
-    return [this.fd[fl]['booth'][f]['pos']]
+    return [{x:0, y:0}]
   }
   
   get_pos(fl, p) {
-    const pos = this.fd[fl]['pos'], sz = this.fd[fl]['size']
-    return new Vec3( pos['x']+p['x']-sz['x']/2, pos['y']+p['y']-sz['y']/2, pos['z'] )
+    const pos = this.fd[fl].pos, sz = this.fd[fl].size
+    return new Vec3( pos.x+p.x-sz.x/2, pos.y+p.y-sz.y/2, pos.z )
   }
   
   get_vtx_pos(fl, vtx) {
@@ -100,7 +101,7 @@ class Map {
   
   draw_line(p, q) {
     const r = Vec3.subtract(q, p)
-    const s = Quat.angleAxis(Vec3.angle(Vec3.XUnit, r), Vec3.cross(Vec3.XUnit, r)).normalize() // Quat.fromToRotation(Vec3.XUnit, r).normalize()
+    const s = Quat.fromToRotation(Vec3.XUnit, r).normalize()
     gr(() => {
       this.world.addChildByName('mesh', { geometry : 'cube', position : Vec3.multiply(.5, Vec3.add(p, q)), scale : [r.magnitude/2+.01, .01, .01], rotation : s, color : 'red', class : 'route', transparent : false, })
     })

@@ -65,8 +65,8 @@ R dis_lp(Line l,Point p){ //直線lと点pの距離ok
 int get_near_s(vector<Line> s,Line p){
     double mind;
     int si = -1;
-    for(int i = 0;i < sz(s);i++){
-        if(is_intersection_ss(s[i], p) && (si == -1 || dis_lp(s[i], p.ft) < mind)){
+    for(int i=0; i<sz(s); i++){
+        if( is_intersection_ss(s[i], p) && (si == -1 || dis_lp(s[i], p.ft) < mind) ){
             mind = dis_lp(s[i],p.ft);
             si = i;
         }
@@ -82,8 +82,10 @@ struct rt_data{
 rt_data get_rt(const vector<Line> s, int start_l, Point start_p, int goal_l, Point goal_p, ll mask){
     rt_data ret;
     if(start_l == goal_l){
-        ret.p.pb(start_p);
-        ret.p.pb(goal_p);
+        if( !EQV(start_p, goal_p) ) {
+            ret.p.pb(start_p);
+            ret.p.pb(goal_p);
+        }
         ret.dis = abs(start_p - goal_p);
         return ret;
     }
@@ -91,12 +93,12 @@ rt_data get_rt(const vector<Line> s, int start_l, Point start_p, int goal_l, Poi
     ret.p.pb(start_p);
     ret.dis = DBL_MAX;
 
-    for(int i = 0;i < sz(s);i++){
-        if((1 << i & mask) || !is_intersection_ss(s[i],s[start_l]))
+    for(int i=0; i<sz(s); i++){
+        if( (1 << i & mask) || !is_intersection_ss(s[i], s[start_l]) )
             continue;
-        rt_data rt = get_rt(s, i, intersection_ll(s[i], s[start_l]), goal_l, goal_p, 1<<i | mask );
-        if(rt.dis < ret.dis){
-            for(int j = 0;j < sz(rt.p);j++)
+        rt_data rt = get_rt( s, i, intersection_ll(s[i], s[start_l]), goal_l, goal_p, 1<<i | mask );
+        if( rt.dis < ret.dis ){
+            for(int j=0; j<sz(rt.p); j++)
                 ret.p.pb(rt.p[j]);
             ret.dis = rt.dis;
         }
@@ -104,17 +106,9 @@ rt_data get_rt(const vector<Line> s, int start_l, Point start_p, int goal_l, Poi
     return ret;
 }
 
-double w, h;
-
-void out_rt_data(rt_data d, int start, int goal){
-    cout << "\n    { \"from\" : " << start << " , \"to\" : " << goal << " , \"vtx\" : [";
-    for(int i = 0;i < sz(d.p);i++){
-        cout << " { \"x\" : " << d.p[i].real() << ",\"y\" : " << h-d.p[i].imag() << "} "<<( i<sz(d.p)-1 ? "," : "]}" );
-    }
-}
-
 int main(){
     int n;
+    double w, h;
     double x, y, x_, y_;
     
     vector<Line> s, p;
@@ -136,7 +130,7 @@ int main(){
         s.pb( Line( Point(x, y) , Point(x_, y_) ) );
     }
      
-    for(int i = 0;i < sz(p);i++){
+    for(int i=0;i < sz(p); i++){
         near_s.pb( get_near_s(s, p[i]) );
         if( near_s[i] == -1 ){
             cout << "  error! " << i << " 番目の部屋から出れない" << endl;
@@ -146,25 +140,31 @@ int main(){
     
     cout << "  \"route\" : [";
     
-    for(int i = 0;i < sz(p);i++){
-        for(int j = i + 1;j < sz(p);j++){
-            rt_data totu = get_rt( s,near_s[i], intersection_ll(s[near_s[i]], p[i]), near_s[j], intersection_ll(s[near_s[j]], p[j]), 1<<near_s[i] );
+    for(int i=0; i<sz(p); i++){
+        for(int j=i; j<sz(p); j++){
             rt_data rt;
             rt.p.pb(p[i].ft);
-            rt.dis = dis_lp(s[near_s[i]], p[i].ft);
-            for(int k = 0;k < sz(totu.p);k++)
-                rt.p.pb(totu.p[k]);
-            rt.p.pb(p[j].ft);
-            rt.dis += totu.dis + dis_lp(s[near_s[j]],p[j].ft);
             
-            if(rt.dis > 1000000000000.0) {
-                cout << "\n\n  error!   " << i << "から" << j << "へ" << "たどり着けない" << endl;
-                return 0;
+            if(i!=j) {
+                rt_data totu = get_rt( s, near_s[i], intersection_ll(s[near_s[i]], p[i]), near_s[j], intersection_ll(s[near_s[j]], p[j]), 1<<near_s[i] );
+                
+                for(int k=0; k<sz(totu.p); k++)
+                    rt.p.pb(totu.p[k]);
+                rt.p.pb(p[j].ft);
+                
+                rt.dis = dis_lp(s[near_s[i]], p[i].ft) + totu.dis + dis_lp(s[near_s[j]], p[j].ft);
+                
+                if(rt.dis > 1000000000000.0) {
+                    cout << "\n\n  error!   " << i << "から" << j << "へ" << "たどり着けない" << endl;
+                    return 0;
+                }
             }
-
-            out_rt_data(rt, i, j);
             
-            cout<<( (i == sz(p) - 2 && j == sz(p) - 1) ? "\n  ]" : "," );
+            cout << "\n    { \"from\" : " << i << " , \"to\" : " << j << " , \"vtx\" : [";
+            for(int k=0; k<sz(rt.p); k++)
+                cout << " { \"x\" : " << rt.p[k].real() << ", \"y\" : " << h-rt.p[k].imag() << " } "<<( k<sz(rt.p)-1 ? "," : "] }" );
+            
+            cout<<( i==sz(p)-1 ? "\n  ]" : "," );
         }
     }
     
