@@ -10,7 +10,7 @@ typedef pair<Point , Point> Line;
 typedef pair<Point ,R > Circle;
 typedef vector<Point> Poly;
 
-#define EPS (1e-3) //誤差
+#define EPS (1e-2) //誤差
 #define EQ(a,b) (abs((a)-(b)) < EPS) //２つの実数が等しいか
 #define EQV(a,b) ( EQ((a).real(), (b).real()) && EQ((a).imag(), (b).imag()) ) //２つのベクトルが等しいか
 #define ft first
@@ -113,6 +113,7 @@ int main(){
     
     vector<Line> s, p;
     vector<int> near_s;
+    vector<Point> ps;
     
     cin>>w>>h;
     cin >> n; //point
@@ -122,6 +123,7 @@ int main(){
         x_ = x + w*dx[d];
         y_ = y + h*dy[d];
         p.pb( Line( Point(x, y) , Point(x_, y_) ) );
+        ps.pb(Point(x,y));
     }
     
     cin >> n; //line
@@ -158,17 +160,35 @@ int main(){
                     cout << "\n\n  error!   " << i << "から" << j << "へ" << "たどり着けない" << endl;
                     return 0;
                 }
+
             }
             
             cout << "\n    { \"from\" : " << i << " , \"to\" : " << j << " , \"vtx\" : [";
-            for(int k=0; k<sz(rt.p); k++)
-                cout << " { \"x\" : " << rt.p[k].real() << ", \"y\" : " << h-rt.p[k].imag() << " } "<<( k<sz(rt.p)-1 ? "," : "] }" );
+            for(int k=0; k<sz(rt.p); k++){
+                //cout << " { \"x\" : " << rt.p[k].real() << ", \"y\" : " << h-rt.p[k].imag() << " } "<<( k<sz(rt.p)-1 ? "," : "] }" );
+                int id = -1;
+                for(int l = 0;l<sz(ps);l++){
+                    if(EQV(rt.p[k],ps[l])){
+                        id = l;
+                        break;
+                    }
+                }
+                if(id == -1){
+                    ps.pb(rt.p[k]);
+                    id = (int)ps.size() - 1;
+                }
+                cout << id <<( k<sz(rt.p)-1 ? "," : "] }" );
+            }
             
-            cout<<( i==sz(p)-1 ? "\n  ]" : "," );
+            cout<<( i==sz(p)-1 ? "\n  ]," : "," );
         }
     }
     
     cout << endl;
+    cout << "  \"points\" : [\n";
+    for(int i = 0;i < sz(ps);i++){
+        cout << "    { \"id\" : " << i << ", \"x\" : " << ps[i].real() << ", \"y\" : " << h - ps[i].imag() << "}" << ((i == sz(ps) - 1) ? "\n  ]" : ",\n");
+    }
     
     return 0;
 }

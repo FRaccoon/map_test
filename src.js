@@ -88,7 +88,11 @@ class Map {
       if(r.from==f && r.to==t)return r.vtx
       else if(r.to==f && r.from==t)return r.vtx.concat().reverse()
     }
-    return [{x:0, y:0}]
+    return [0]
+  }
+  
+  get_pos_by_id(fl, id) {
+    return this.get_pos(fl, this.fd[fl].points[id])
   }
   
   get_pos(fl, p) {
@@ -98,7 +102,7 @@ class Map {
   
   get_vtx_pos(fl, vtx) {
     let r = []
-    for(let i=0;i<vtx.length;i++)r.push(this.get_pos(fl, vtx[i]))
+    for(let i=0;i<vtx.length;i++)r.push(this.get_pos_by_id(fl, vtx[i]))
     return r
   }
   
